@@ -1,0 +1,67 @@
+Aufgabe 1)		(alle Pfade können relativ oder absolut sein)
+	man [<Optionen>] [<Page>] <Kommando>
+		Ausgabe der Hilfeseite des dazugehörigen Kommando.
+	
+	pwd [<Optionen>]
+		Gibt Homeverzeichnis des angemeldeten Benutzers.
+	
+	ls [<Optionen>] [<Pfad>]
+		Gibt den Inhalt des angegebenen Pfades oder des aktuellen Pfades.
+
+	ls -l[<Optionen>] [<Pfad>]
+		Gibt den Inhalt des angegebenen Pfades oder des aktuellen Pfades in Langform wieder.
+
+	ls -al[<Optionen>] [<Pfad>]
+		Gibt den Inhalt des angegebenen Pfades oder des aktuellen Pfades in Langform wieder plus versteckte Dateien und Verzeichniseinträge.
+
+	cd [<Optionen>] <Pfad>
+		Wechselt den Pfad.
+
+	mkdir [<Optionen>] [<Pfad>]<Verzeichnisname>
+		Erstellt ein Verzeichnis im aktuellen Pfad, absoluter Pfad ist hier nicht möglich.
+
+	rm [<Optionen>] <Datei>
+		Löscht die angegebene Datei.
+
+	cp [<Optionen>] <Quell-Datei oder -Verzeichnis> <Ziel-Datei oder -Verzeichnis>
+  		Kopiert die angegebene Quelle in die das angegebene Ziel.
+
+	mv [<Optionen>] <Quell-Datei oder -Verzeichnis> <Ziel-Datei oder -Verzeichnis>
+		Verschiebt oder benennt die angegebene Quelle in die das angegebene Ziel.
+
+	more [<Optionen>] <Datei> 
+		Gibt die angegebene Datei aus.
+
+	tar <Optionen> <Datei/en>
+		Manipuliert Archive.
+
+	gzip [<Optionen>] <Datei/en>
+		Komprimiert und dekomprimiert Archive
+
+	top [<Optionen>] 
+		Gibt eine dynamische Ansicht über alle laufenden Prozesse und Systemressourcen an.
+
+	uname [<Optionen>]
+		Gibt Informationen über das System wieder 
+
+	find . | xargs grep testString
+		Sucht in allen Dateien vom System den String "testString". 
+
+Aufgabe 2)
+	mkdir ~/Betriebssysteme/{01,02,03,04,05,06,07,08,09}
+	tar -xzf file.tar.gz
+	ls 			-> *file1
+	ls | head -n 1 | xargs rm
+
+Aufgabe 3) 
+	tar -xzf dirStruct.tar.gz
+	cd ./rootTest/dir1
+	rm * .txt
+
+	Ausgabe: 
+		rm: .txt: No such file or directory
+	Ergebnis:
+		Er löscht alle Dateien in dem Verzeichnis
+	Rückgängig machen:
+		Ist nicht ohne weiteres Rückgängig zumachen.
+	
