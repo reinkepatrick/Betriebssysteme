@@ -53,6 +53,11 @@ Aufgabe 2)
 	ls 			-> *file1
 	ls | head -n 1 | xargs rm
 
+	Metadaten:
+		* : Steht für alle Zeichen, beliebige Länge.
+		? : Steht für genau ein Zeichen.
+		
+
 Aufgabe 3) 
 	tar -xzf dirStruct.tar.gz
 	cd ./rootTest/dir1
