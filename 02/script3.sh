@@ -1,4 +1,4 @@
-#Aufgabe 2
+# Aufgabe 3
 
 function exists() {
   if [ -e $1 ]; then
@@ -33,6 +33,16 @@ function whoisowner() {
   echo "$OWNER ist der Besitzer."
 }
 
+function printtxt() {
+  if [ ${1: -4} == ".txt" ]; then
+    echo "Datei anzeigen? (y/n): "
+    read -n 1 ans
+    if [ $ans == "y" ]; then
+      echo "$(cat $1)"
+    fi
+  fi
+}
+
 for var in $@
 do
   echo ""
@@ -42,4 +52,5 @@ do
   link $var
   amiowner $var
   whoisowner $var
+  printtxt $var
 done
