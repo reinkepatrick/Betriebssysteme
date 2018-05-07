@@ -11,9 +11,9 @@ else
     if [[ $LINE =~ $1* ]]; then
       TEMPFILE=$(echo "$LINE" | cut -d'!' -f 1)
       NEWFILE=$(echo "$LINE" | cut -d' ' -f 2)
-      TEMP=$(echo "$NEWFILE" | rev | cut -d'/' -f 1)
+      FILENAME=$(echo "$NEWFILE" | rev | cut -d'/' -f 1)
 
-      if [ ! -d ${NEWFILE:0:(${#NEWFILE} - ${#TEMP})} ]; then
+      if [ ! -d ${NEWFILE:0:(${#NEWFILE} - ${#FILENAME})} ]; then
         echo "Verzeichnis existiert nicht mehr"
       else
         $(mv $HOME/.trashbin/$TEMPFILE $NEWFILE)
