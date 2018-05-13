@@ -9,7 +9,7 @@ if [ ! -e $HOME/.trashbin/.dir ]; then
 fi
 
 if [ ! -f $1 ]; then
-  echo 'Kein Parameter angegeben'
+  echo 'Datei nicht vorhanden.'
 else
   TIMESTAMP=$(date '+%y%m%d%H%M%S')
   FILENAME="$TIMESTAMP""_$$.dat"
