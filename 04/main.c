@@ -1,29 +1,44 @@
 #include <stdio.h>
 #include <string.h>
 #include <zconf.h>
+#include <stdlib.h>
 
-#define ARRLENGTH 64
+#define TOKEN_DELIM " \n"
 
 //Prototypes
-void main_loop();
+void mms_main_loop();
 void mms_write_console();
 
+char *mms_read_line();
+
+char **mms_tokenize(char *);
+
+void mms_launch(char **args);
+
+int mms_execute(char **args);
+
+void mms_cd(char **args);
 
 int main() {
-    main_loop();
+    mms_main_loop();
     return 0;
 }
 
-void main_loop() {
-    char string[ARRLENGTH];
+void mms_main_loop() {
+    char *string;
+    char **args;
+    int status;
 
-    mms_write_console();
-    scanf("%31s", &string[0]);
-    printf("Ihre Eingabe: %s\n", string);
+    do {
+        mms_write_console();
+        string = mms_read_line();
+        args = mms_tokenize(string);
+        status = mms_execute(args);
+    } while (status);
 }
 
 void mms_write_console() {
-    char user[128];
+    char user[32];
     getlogin_r(user, sizeof(user));
 
     char cwd[1024];
@@ -38,6 +53,57 @@ void mms_write_console() {
     printf("%s:%s $ ",user, dir);
 }
 
-void mms_chdir() {
+char *mms_read_line() {
+    char *string = NULL;
+    size_t bufsize = 0;
+    getline(&string, &bufsize, stdin);
+    return string;
+}
 
+char **mms_tokenize(char *input) {
+    int index = 0;
+    char **tokens = malloc(64 * sizeof(char *));
+    char *token = strtok(input, TOKEN_DELIM);
+    while (token != NULL) {
+        tokens[index] = token;
+        index++;
+        token = strtok(NULL, TOKEN_DELIM);
+    }
+    tokens[index] = NULL;
+    return tokens;
+}
+
+void mms_launch(char **args) {
+    pid_t pid = fork();
+    if (pid == 0) {
+        execvp(args[0], args);
+    } else if (pid < 0) {
+        printf("Forking Error");
+    } else {
+        int status;
+        do {
+            waitpid(pid, &status, NULL);
+        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    }
+}
+
+int mms_execute(char **args) {
+    if (strcmp(args[0], "cd") == 0) {
+        mms_cd(args);
+    } else if (strcmp(args[0], "exit") == 0) {
+        return 0;
+    } else {
+        mms_launch(args);
+    }
+    return 1;
+}
+
+void mms_cd(char **args) {
+    if (args[1] == NULL) {
+        printf("Keinen Pfad angegeben.");
+    } else {
+        if (chdir(args[1]) != 0) {
+            printf("cd error");
+        }
+    }
 }
