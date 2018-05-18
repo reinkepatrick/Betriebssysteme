@@ -8,16 +8,12 @@
 //Prototypes
 void mms_main_loop();
 void mms_write_console();
-
 char *mms_read_line();
-
 char **mms_tokenize(char *);
-
 void mms_launch(char **args);
-
 int mms_execute(char **args);
-
 void mms_cd(char **args);
+void mms_set(char **args);
 
 int main() {
     mms_main_loop();
@@ -78,7 +74,7 @@ void mms_launch(char **args) {
     if (pid == 0) {
         execvp(args[0], args);
     } else if (pid < 0) {
-        printf("Forking Error");
+        printf("Forking Error\n");
     } else {
         int status;
         do {
@@ -92,6 +88,8 @@ int mms_execute(char **args) {
         mms_cd(args);
     } else if (strcmp(args[0], "exit") == 0) {
         return 0;
+    } else if (strcmp(args[0], "set") == 0) {
+        mms_set(args);
     } else {
         mms_launch(args);
     }
@@ -100,10 +98,16 @@ int mms_execute(char **args) {
 
 void mms_cd(char **args) {
     if (args[1] == NULL) {
-        printf("Keinen Pfad angegeben.");
+        printf("Keinen Pfad angegeben\n");
     } else {
         if (chdir(args[1]) != 0) {
             printf("cd error");
         }
+    }
+}
+
+void mms_set(char **args) {
+    if (putenv(args[1]) != 0) {
+        printf("set error \n");
     }
 }
