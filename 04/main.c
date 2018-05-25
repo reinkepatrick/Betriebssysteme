@@ -61,8 +61,21 @@ char **mms_tokenize(char *input) {
     char **tokens = malloc(64 * sizeof(char *));
     char *token = strtok(input, TOKEN_DELIM);
     while (token != NULL) {
-        tokens[index] = token;
-        index++;
+
+        if(strncmp(token, "$", 1) == 0) {
+            char *env = strtok(token, "$");
+            env = getenv(strtok(env, "/"));
+            env = strcat(env, "/");
+
+            token = strtok(NULL, TOKEN_DELIM);
+            if (token != NULL) {
+                token = strcat(env, token);
+            } else {
+                token = env;
+            }
+        }
+
+        tokens[index++] = token;
         token = strtok(NULL, TOKEN_DELIM);
     }
     tokens[index] = NULL;
@@ -107,7 +120,10 @@ void mms_cd(char **args) {
 }
 
 void mms_set(char **args) {
-    if (putenv(args[1]) != 0) {
-        printf("set error \n");
+    int index = 1;
+    char str[2];
+    while(args[index] != NULL) {
+        sprintf(str, "%d", index);
+        setenv(str, args[index++], 1);
     }
 }
