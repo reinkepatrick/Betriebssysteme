@@ -10,6 +10,7 @@ void mms_main_loop();
 void mms_write_console();
 char *mms_read_line();
 char **mms_tokenize(char *);
+char *mms_env(char *);
 void mms_launch(char **args);
 int mms_execute(char **args);
 void mms_cd(char **args);
@@ -63,16 +64,7 @@ char **mms_tokenize(char *input) {
     while (token != NULL) {
 
         if(strncmp(token, "$", 1) == 0) {
-            char *env = strtok(token, "$");
-            env = getenv(strtok(env, "/"));
-            env = strcat(env, "/");
-
-            token = strtok(NULL, TOKEN_DELIM);
-            if (token != NULL) {
-                token = strcat(env, token);
-            } else {
-                token = env;
-            }
+            token = mms_env(token);
         }
 
         tokens[index++] = token;
@@ -80,6 +72,21 @@ char **mms_tokenize(char *input) {
     }
     tokens[index] = NULL;
     return tokens;
+}
+
+char *mms_env(char *token) {
+    char *env = strtok(token, "$");
+    char *var = getenv(strtok(env, "/"));
+
+    char *ret = malloc(strlen(var) * sizeof(char *));
+    strcpy(ret, var);
+
+    env = strtok(NULL, "");
+    if(env != NULL) {
+        ret = strcat(ret, "/");
+        ret = strcat(ret, env);
+    }
+    return ret;
 }
 
 void mms_launch(char **args) {
