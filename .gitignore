@@ -66,6 +66,8 @@ Temporary Items
 .idea/**/tasks.xml
 .idea/**/dictionaries
 .idea/**/shelf
+*/.idea/*
+.idea/*
 
 # Sensitive or high-churn files
 .idea/**/dataSources/
