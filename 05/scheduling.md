@@ -44,7 +44,6 @@ T = 74,2 Minuten
 
 
 ## Round Robin - konstante Zeitscheibe, unabhänig von der Priorität
-### Mittlere Verweilzeit
 |         A         |   B   |   C   |   D   |    E   |              Zeit |
 |:-----------------:|:-----:|:-----:|:-----:|:------:|------------------:|
 |         30        |   20  |   25  |   28  | **18** |                 0 |
@@ -54,12 +53,12 @@ T = 74,2 Minuten
 |       **2**       |       |       |       |        | 113 + 2 * 3 = 119 |
 |                   |       |       |       |        | 119 + 1 * 2 = 121 |
 
+### Mittlere Verweilzeit
 T = (90 + 98 + 113 + 119 + 121) : 5
 
 T = 108,2 Minuten
 
 ## Round Robin - Zeitscheibendauer proportional zur Priorität
-### Mittlere Verweilzeit
 |  A(2) |  B(1) |  C(5) |  D(4) |  E(3) | CPU-Anteile | Durchlaufzeit | Verweilzeit der im Durchlauf terminierten Prozesse |
 |:-----:|:-----:|:-----:|:-----:|:-----:|------------:|--------------:|---------------------------------------------------:|
 |   30  |   20  |   25  |   28  |   18  |             |               |                                                    |
@@ -68,3 +67,8 @@ T = 108,2 Minuten
 |   16  |   13  |       |   -   |       |           7 |        7 min. |                                    T = 85 + 7 = 92 |
 |   -   |   5   |       |       |       |           3 |       24 min. |                                  T = 92 + 24 = 116 |
 |   -   |       |       |       |   1   |           1 |        5 min. |                                  T = 116 + 5 = 121 |
+
+### Mittlere Verweilzeit
+T = (75 + 85 + 92 + 116 + 121) : 5
+
+T = 97,8 Minuten
