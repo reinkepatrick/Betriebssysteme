@@ -21,7 +21,7 @@
 #endif
 #include <assert.h>
 
-#include "global.h"
+#include "../include/global.h"
 
 /****************** Conditional compilation switches *******************/
 

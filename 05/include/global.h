@@ -121,6 +121,10 @@
 #define EXITCODE_INTERNAL_ERROR 128
 
 /**************************** Datatypes ********************************/
+
+typedef unsigned int uint;
+typedef unsigned long ulong;
+
 #ifndef HAVE_STDBOOL_H
   #ifndef __cplusplus
     typedef uint8_t bool;

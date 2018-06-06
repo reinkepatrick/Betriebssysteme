@@ -25,9 +25,9 @@
 #endif
 #include <assert.h>
 
-#include "global.h"
+#include "../include/global.h"
 
-#include "lists.h"
+#include "../include/lists.h"
 
 /****************** Conditional compilation switches *******************/
 
@@ -315,7 +315,7 @@ Node * __List_newNode(const char *__fileName__, ulong __lineNb__, ulong size)
         debugListNode = (DebugListNode*)malloc(sizeof(DebugListNode));
         if (debugListNode == NULL)
         {
-          HALT_INSUFFICIENT_MEMORY();
+          //HALT_INSUFFICIENT_MEMORY();
         }
       }
 
