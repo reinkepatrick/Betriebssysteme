@@ -74,7 +74,7 @@ void constRoundRobin(JobList *jobs)
 {
     List_sort(&*jobs, (ListNodeCompareFunction)compareTime, NULL);
     int count = jobs->count;
-    float residenceTime = 0.0, avgResidenceTime = 0.0;
+    float residenceTime = 0.0, sumResidenceTime = 0.0;
     Job *outerJob = jobs->head;
     Job *innerJob;
 
@@ -85,19 +85,19 @@ void constRoundRobin(JobList *jobs)
         printf("\nEs wird an den folgenden Prozessen gearbeitet: \n");
         while (innerJob != NULL)
         {
-            printf("  Es wurde %.1f Minuten an %s gearbeitet.\n", workingTime, innerJob->name);
             if (innerJob->time - workingTime == 0.0)
             {
                 residenceTime += ((innerJob->time - prevTime) * count--);
-                avgResidenceTime += residenceTime;
+                sumResidenceTime += residenceTime;
                 prevTime = innerJob->time;
-                printf("  %s wurde abgearbeitet.\n", innerJob->name);
             }
+            printf("  Es wurde %.1f Minuten an %s gearbeitet.\n", residenceTime, innerJob->name);
             innerJob = innerJob->next;
         }
+        printf("  %s wurde abgearbeitet.\n", outerJob->name);
         outerJob = outerJob->next;
     }
-    printf("Mittlere Verweilzeit: %.3f\n\n", avgResidenceTime / jobs->count);
+    printf("\nMittlere Verweilzeit: %.3f\n\n", sumResidenceTime / jobs->count);
 }
 
 void prioRoundRobin(JobList *jobs)
@@ -112,9 +112,9 @@ void prioRoundRobin(JobList *jobs)
         while (innerJob != NULL)
         {
             printf("  Es wurde %.1f an %s gearbeitet.\n", residenceTime, innerJob->name);
-            innerJob = innerJob ->next;
+            innerJob = innerJob->next;
         }
-        outerJob  = outerJob->next;
+        outerJob = outerJob->next;
     }
 }
 
@@ -142,8 +142,8 @@ int main()
     printf("Round Robin Konstant\n");
     constRoundRobin(&jobs);
 
-    printf("Round Robin mit Prioritäten\n");
-    prioRoundRobin(&jobs);
+    //printf("Round Robin mit Prioritäten\n");
+    //prioRoundRobin(&jobs);
 
     return EXIT_SUCCESS;
 }
