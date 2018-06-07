@@ -52,7 +52,7 @@ void firstComeFirstServe(JobList *jobs)
     {
         currentTime += job->time;
         avgResidenceTime += (job->time * count--);
-        printf("%s wurde abgearbeitet. Aktuelle Zeit: %.3f)\n", job->name, currentTime);
+        printf("%s wurde abgearbeitet. Aktuelle Zeit: %.0f)\n", job->name, currentTime);
         job = job->next;
     }
     printf("Mittlere Verweilzeit: %.3f\n\n", avgResidenceTime / jobs->count);
@@ -82,7 +82,7 @@ void constRoundRobin(JobList *jobs)
     {
         float prevTime, workingTime = outerJob->time;
         innerJob = outerJob;
-        printf("\nEs wird an den folgenden Prozessen gearbeitet: \n");
+        printf("\nEs wird an den folgenden Jobs gearbeitet: \n");
         while (innerJob != NULL)
         {
             if (innerJob->time - workingTime == 0.0)
@@ -91,7 +91,7 @@ void constRoundRobin(JobList *jobs)
                 sumResidenceTime += residenceTime;
                 prevTime = innerJob->time;
             }
-            printf("  Es wurde %.1f Minuten an %s gearbeitet.\n", residenceTime, innerJob->name);
+            printf("  Es wurde %.0f Minuten an %s gearbeitet.\n", residenceTime, innerJob->name);
             innerJob = innerJob->next;
         }
         printf("  %s wurde abgearbeitet.\n", outerJob->name);
@@ -106,15 +106,6 @@ void prioRoundRobin(JobList *jobs)
     Job *outerJob = jobs->head;
     while (outerJob != NULL)
     {
-        Job *innerJob = outerJob;
-        float residenceTime = (innerJob->time * ((float)jobs->prio / (float)innerJob->prio));
-        printf("\nEs wird an den Jobs zu folgenden Anteilen gearbeitet:\n");
-        while (innerJob != NULL)
-        {
-            printf("  Es wurde %.1f an %s gearbeitet.\n", residenceTime, innerJob->name);
-            innerJob = innerJob->next;
-        }
-        outerJob = outerJob->next;
     }
 }
 
@@ -142,8 +133,8 @@ int main()
     printf("Round Robin Konstant\n");
     constRoundRobin(&jobs);
 
-    //printf("Round Robin mit Prioritäten\n");
-    //prioRoundRobin(&jobs);
+    printf("Round Robin mit Prioritäten\n");
+    prioRoundRobin(&jobs);
 
     return EXIT_SUCCESS;
 }
