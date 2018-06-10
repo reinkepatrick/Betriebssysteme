@@ -27,6 +27,12 @@ void addJob(JobList *jobs, char name[64], float time, int prio)
     List_append(&*jobs, job);
 }
 
+void removeJob(JobList *jobs, Job *job)
+{
+    jobs->prio -= job->prio;
+    List_remove(jobs, job);
+}
+
 int compareTime(Job *job1, Job *job2, void *dummy)
 {
     return (int)job1->time - job2->time;
@@ -47,15 +53,16 @@ void firstComeFirstServe(JobList *jobs)
 {
     Job *job = jobs->head;
     float avgResidenceTime = 0.0, currentTime = 0.0;
-    int count = jobs->count;
+    int const count = jobs->count;
     while (job != NULL)
     {
         currentTime += job->time;
-        avgResidenceTime += (job->time * count--);
-        printf("%s wurde abgearbeitet. Aktuelle Zeit: %.0f)\n", job->name, currentTime);
-        job = job->next;
+        avgResidenceTime += (job->time * jobs->count);
+        printf("%s wurde abgearbeitet. Aktuelle Zeit: %.0f\n", job->name, currentTime);
+        removeJob(jobs, job);
+        job = jobs->head;
     }
-    printf("Mittlere Verweilzeit: %.3f\n\n", avgResidenceTime / jobs->count);
+    printf("Mittlere Verweilzeit: %.3f\n\n", avgResidenceTime / count);
 }
 
 void shortestJobFirst(JobList *jobs)
@@ -73,7 +80,7 @@ void prioScheduling(JobList *jobs)
 void constRoundRobin(JobList *jobs)
 {
     List_sort(&*jobs, (ListNodeCompareFunction)compareTime, NULL);
-    int count = jobs->count;
+    int const count = jobs->count;
     float residenceTime = 0.0, sumResidenceTime = 0.0;
     Job *outerJob = jobs->head;
     Job *innerJob;
@@ -87,7 +94,7 @@ void constRoundRobin(JobList *jobs)
         {
             if (innerJob->time - workingTime == 0.0)
             {
-                residenceTime += ((innerJob->time - prevTime) * count--);
+                residenceTime += ((innerJob->time - prevTime) * jobs->count);
                 sumResidenceTime += residenceTime;
                 prevTime = innerJob->time;
             }
@@ -95,18 +102,36 @@ void constRoundRobin(JobList *jobs)
             innerJob = innerJob->next;
         }
         printf("  %s wurde abgearbeitet.\n", outerJob->name);
-        outerJob = outerJob->next;
+        removeJob(jobs, outerJob);
+        outerJob = jobs->head;
     }
-    printf("\nMittlere Verweilzeit: %.3f\n\n", sumResidenceTime / jobs->count);
+    printf("\nMittlere Verweilzeit: %.3f\n\n", sumResidenceTime / count);
 }
 
 void prioRoundRobin(JobList *jobs)
 {
+    int count = jobs->count;
     List_sort(&*jobs, (ListNodeCompareFunction)comparePrioAndTime, NULL);
     Job *outerJob = jobs->head;
+    float prevTime = 0.0, sumTime = 0.0;
     while (outerJob != NULL)
     {
+        Job *innerJob = outerJob;
+        float residenceTime = innerJob->time * ((float)jobs->prio / (float)innerJob->prio);
+        prevTime += residenceTime;
+        sumTime += prevTime;
+        printf("\nEs wird an den Jobs zu folgenden Anteilen gearbeitet:\n");
+        while (innerJob != NULL)
+        {
+            printf("  Es wurde %.1f an %s gearbeitet.\n", prevTime, innerJob->name);
+            float newTime = residenceTime * ((float)innerJob->prio / (float)jobs->prio);
+            innerJob->time -= floor(newTime + 0.5);
+            innerJob = innerJob->next;
+        }
+        removeJob(jobs, outerJob);
+        outerJob = jobs->head;
     }
+    printf("Mittlere Verweilzeit: %.2f\n", sumTime / count);
 }
 
 int main()
@@ -124,14 +149,38 @@ int main()
     printf("First Come First Serve\n");
     firstComeFirstServe(&jobs);
 
+    addJob(&jobs, "A", 30.0, 2);
+    addJob(&jobs, "B", 20.0, 1);
+    addJob(&jobs, "C", 25.0, 5);
+    addJob(&jobs, "D", 28.0, 4);
+    addJob(&jobs, "E", 18.0, 3);
+
     printf("Shortest Job First\n");
     shortestJobFirst(&jobs);
+
+    addJob(&jobs, "A", 30.0, 2);
+    addJob(&jobs, "B", 20.0, 1);
+    addJob(&jobs, "C", 25.0, 5);
+    addJob(&jobs, "D", 28.0, 4);
+    addJob(&jobs, "E", 18.0, 3);
 
     printf("Prio Scheduling\n");
     prioScheduling(&jobs);
 
+    addJob(&jobs, "A", 30.0, 2);
+    addJob(&jobs, "B", 20.0, 1);
+    addJob(&jobs, "C", 25.0, 5);
+    addJob(&jobs, "D", 28.0, 4);
+    addJob(&jobs, "E", 18.0, 3);
+
     printf("Round Robin Konstant\n");
     constRoundRobin(&jobs);
+
+    addJob(&jobs, "A", 30.0, 2);
+    addJob(&jobs, "B", 20.0, 1);
+    addJob(&jobs, "C", 25.0, 5);
+    addJob(&jobs, "D", 28.0, 4);
+    addJob(&jobs, "E", 18.0, 3);
 
     printf("Round Robin mit Prioritäten\n");
     prioRoundRobin(&jobs);
