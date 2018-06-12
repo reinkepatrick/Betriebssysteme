@@ -1,4 +1,4 @@
-CFLAGS = -pthread -std=c11 -Wall -g -I$(INCLUDE)
+CFLAGS = -pthread -std=c11 -g -I$(INCLUDE)
 INCLUDE = ../include
 
 threads: src/main.o src/miniz.o
