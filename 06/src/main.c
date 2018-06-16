@@ -5,6 +5,8 @@
 #include "../include/miniz.h"
 #include "../include/queue.h"
 
+#define THREADS 2
+
 typedef struct job
 {
     char *content;
@@ -20,6 +22,7 @@ typedef struct
 
 typedef struct
 {
+    int id;
     Jobs jobs;
     char *path;
     DIR *dir;
@@ -57,8 +60,7 @@ void *reader_thread(void *arg)
                 //neuen Job erstellen
                 Job *job = (Job *)malloc(sizeof(Job));
                 job->path = strcat(strdup(reader_arg->path), ent->d_name);
-                job->content = read_file(job->path);
-                printf("%s\n", job->content);
+                job->content = read_file(job->path); //maybe empty :(
 
                 //sperren - hinzufügen - entsperren
                 pthread_mutex_lock(&reader_arg->jobs.mutex);
@@ -71,6 +73,12 @@ void *reader_thread(void *arg)
     {
         printf("Fehler beim öffnen des Verzeichnis\n");
     }
+    pthread_exit((void *)NULL);
+}
+
+void *compress_thread(void *arg)
+{   
+    printf("Compression gestartet\n");
     pthread_exit((void *)NULL);
 }
 
@@ -91,21 +99,40 @@ int main(int argc, char const *argv[])
     if (dir == NULL)
         return EXIT_FAILURE;
 
-    //Arguments for Threads
-    Args args;
-    args.jobs = jobs;
-    args.path = (char *)argv[1];
-    args.dir = dir;
+    //Arguments for Reader
+    Args r_args;
+    r_args.jobs = jobs;
+    r_args.path = (char *)argv[1];
+    r_args.dir = dir;
 
-    //Threads starten
-    pthread_t reader, compress;
-    if (pthread_create(&reader, NULL, &reader_thread, &args) != 0)
+    //Reader starten
+    pthread_t reader, compress[THREADS];
+    if (pthread_create(&reader, NULL, &reader_thread, &r_args) != 0)
     {
         printf("Fehler beim Erstellen des Readers\n");
         return EXIT_FAILURE;
     }
 
+    //Compression Threads starten
+    for (int i = 0; i < THREADS; i++)
+    {
+        Args c_args;
+        c_args.jobs = jobs;
+        c_args.id = i;
+
+        if (pthread_create(&compress[i], NULL, &compress_thread, &c_args) != 0)
+        {
+            printf("Fehler beim Erstellen des Compressers\n");
+            return EXIT_FAILURE;
+        }
+    }
+
+    //auf beenden der Threads warten
     pthread_join(reader, NULL);
+    for (int i = 0; i < THREADS; i++)
+    {
+        pthread_join(compress[i], NULL);
+    }
 
     return EXIT_SUCCESS;
 }

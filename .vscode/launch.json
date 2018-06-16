@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/06/threads",
-            "args": ["src/"],
+            "args": ["data/"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
