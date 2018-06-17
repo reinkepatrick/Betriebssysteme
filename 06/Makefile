@@ -6,4 +6,4 @@ threads: src/main.o src/miniz.o
 
 .PHONY: clean
 clean:
-	rm -rf src/*.o threads *.~
+	rm -rf src/*.o threads *.~ data/*.compr

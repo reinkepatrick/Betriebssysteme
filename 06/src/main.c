@@ -17,7 +17,7 @@ typedef struct
 {
     Queue queue;
     pthread_mutex_t mutex;
-    pthread_cond_t is_empty;
+    pthread_cond_t status;
     int empty;
     int done;
 } Jobs;
@@ -25,7 +25,7 @@ typedef struct
 typedef struct
 {
     int id;
-    Jobs jobs;
+    Jobs *jobs;
     char *path;
     DIR *dir;
 } Args;
@@ -35,13 +35,28 @@ char *read_file(const char *path)
     char *buffer = "";
     FILE *file = fopen(path, "r");
 
-    if (file == NULL)
+    if (file == NULL) {
         return buffer;
+    }
 
     buffer = malloc(ftell(file));
     fread(buffer, 1, ftell(file), file);
     fclose(file);
     return buffer;
+}
+
+void write_file(const char *path, const char *data)
+{
+    char *filename = malloc(strlen(path) + strlen(".compr"));
+    //neuen Dateinamen generieren
+    int pos = (int)(strrchr(path, '.') - path);
+    filename = strncpy(filename, path, pos);
+    filename = strcat(filename, ".compr");
+
+    //in Datei schreiben
+    FILE *file = fopen(filename, "w");
+    fprintf(file, "%s", data);
+    fclose(file);
 }
 
 void *reader_thread(void *arg)
@@ -66,14 +81,14 @@ void *reader_thread(void *arg)
                 printf("%s eingelesen und hinzugefügt\n", job->path);
 
                 //sperren - hinzufügen - entsperren
-                pthread_mutex_lock(&reader_arg->jobs.mutex);
-                queue_insert(reader_arg->jobs.queue, job);
-                reader_arg->jobs.empty = 0;
-                pthread_mutex_unlock(&reader_arg->jobs.mutex);
-                pthread_cond_signal(&reader_arg->jobs.is_empty);
+                pthread_mutex_lock(&reader_arg->jobs->mutex);
+                queue_insert(reader_arg->jobs->queue, job);
+                pthread_mutex_unlock(&reader_arg->jobs->mutex);
+                reader_arg->jobs->empty = 0;
+                pthread_cond_signal(&reader_arg->jobs->status);
             }
         }
-        reader_arg->jobs.done = 1;
+        reader_arg->jobs->done = 1;
     }
     else
     {
@@ -90,22 +105,36 @@ void *compress_thread(void *arg)
 
     while (1)
     {
-        //printf("while");
-        pthread_mutex_lock(&args->jobs.mutex);
-        while (args->jobs.empty == 1)
+        //sperren
+        pthread_mutex_lock(&args->jobs->mutex);
+
+        //warten bis Jobs bereitstehen
+        while (args->jobs->empty == 1)
         {
-            pthread_cond_wait(&args->jobs.is_empty, &args->jobs.mutex);
+            printf("Compression %d wartet auf Jobs\n", args->id);
+            pthread_cond_wait(&args->jobs->status, &args->jobs->mutex);
         }
-        int done = args->jobs.done;
-        Job *job = queue_head(args->jobs.queue);
-        queue_delete(args->jobs.queue);
-        pthread_mutex_unlock(&args->jobs.mutex);
+
+        //nimm einen Job aus der Queue und entsperre
+        int done = args->jobs->done;
+        Job *job = queue_head(args->jobs->queue);
+        queue_delete(args->jobs->queue);
+        pthread_mutex_unlock(&args->jobs->mutex);
+
+        //komprimiere wenn es einen job gibt
         if (job != NULL)
         {
-            printf("Compression-Thread %d komprimiert %s", args->id, job->path);
+            printf("Compression-Thread %d komprimiert %s\n", args->id, job->path);
+            const Result *res = compress_string(job->content);
+            if(res != NULL)
+            {
+                write_file(job->path, res->data);
+            }
         }
         else if (done == 1)
         {
+            //wenn nicht, condition zerstören um wartende threads zu lösen
+            pthread_cond_destroy(&args->jobs->status);
             break;
         }
     }
@@ -125,7 +154,7 @@ int main(int argc, char const *argv[])
     Jobs jobs;
     jobs.queue = queue_create();
     pthread_mutex_init(&jobs.mutex, NULL);
-    pthread_cond_init(&jobs.is_empty, NULL);
+    pthread_cond_init(&jobs.status, NULL);
     jobs.empty = 1;
     jobs.done = 0;
     DIR *dir = opendir(argv[1]);
@@ -135,7 +164,7 @@ int main(int argc, char const *argv[])
 
     //Arguments for Reader
     Args r_args;
-    r_args.jobs = jobs;
+    r_args.jobs = &jobs;
     r_args.path = (char *)argv[1];
     r_args.dir = dir;
 
@@ -151,8 +180,8 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < THREADS; i++)
     {
         Args c_args;
-        c_args.jobs = jobs;
-        c_args.id = i;
+        c_args.jobs = &jobs;
+        c_args.id = i + 1;
 
         if (pthread_create(&compress[i], NULL, &compress_thread, &c_args) != 0)
         {
@@ -167,7 +196,7 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < THREADS; i++)
     {
         pthread_join(compress[i], NULL);
-        printf("%d Compression wurde erfolgreich beendet.\n", i);
+        printf("Compression %d wurde erfolgreich beendet.\n", i+1);
     }
 
     return EXIT_SUCCESS;
