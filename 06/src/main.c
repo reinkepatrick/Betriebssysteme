@@ -5,7 +5,7 @@
 #include "../include/miniz.h"
 #include "../include/queue.h"
 
-#define THREADS 1
+#define THREADS 3
 
 typedef struct job
 {
@@ -35,13 +35,21 @@ char *read_file(const char *path)
     char *buffer = "";
     FILE *file = fopen(path, "r");
 
-    if (file == NULL) {
+    //dateilänge
+    fseek(file, 0, SEEK_END);
+    long fsize = ftell(file);
+    rewind(file);
+
+    if (file == NULL)
+    {
         return buffer;
     }
 
-    buffer = malloc(ftell(file));
-    fread(buffer, 1, ftell(file), file);
+    //lese aus datei, schreibe in buffer
+    buffer = malloc(fsize + 1);
+    fread(buffer, fsize, 1, file);
     fclose(file);
+    sleep(1);
     return buffer;
 }
 
@@ -56,6 +64,7 @@ void write_file(const char *path, const char *data)
     //in Datei schreiben
     FILE *file = fopen(filename, "w");
     fprintf(file, "%s", data);
+    sleep(3);
     fclose(file);
 }
 
@@ -77,8 +86,8 @@ void *reader_thread(void *arg)
                 //neuen Job erstellen
                 Job *job = (Job *)malloc(sizeof(Job));
                 job->path = strcat(strdup(reader_arg->path), ent->d_name);
-                job->content = read_file(job->path); //maybe empty :(
-                printf("%s eingelesen und hinzugefügt\n", job->path);
+                job->content = read_file(job->path);
+                printf("Reader hat %s eingelesen und hinzugefügt\n", job->path);
 
                 //sperren - hinzufügen - entsperren
                 pthread_mutex_lock(&reader_arg->jobs->mutex);
@@ -94,7 +103,6 @@ void *reader_thread(void *arg)
     {
         printf("Fehler beim öffnen des Verzeichnis\n");
     }
-
     pthread_exit((void *)NULL);
 }
 
@@ -126,7 +134,7 @@ void *compress_thread(void *arg)
         {
             printf("Compression-Thread %d komprimiert %s\n", args->id, job->path);
             const Result *res = compress_string(job->content);
-            if(res != NULL)
+            if (res != NULL)
             {
                 write_file(job->path, res->data);
             }
@@ -138,7 +146,6 @@ void *compress_thread(void *arg)
             break;
         }
     }
-
     pthread_exit((void *)NULL);
 }
 
@@ -149,6 +156,10 @@ int main(int argc, char const *argv[])
         printf("Falsche Anzahl Argumente\n");
         return EXIT_FAILURE;
     }
+
+    //Zeit messen
+    time_t tstart, tend;
+    time(&tstart);
 
     //Init Queue
     Jobs jobs;
@@ -179,11 +190,11 @@ int main(int argc, char const *argv[])
     //Compression Threads starten
     for (int i = 0; i < THREADS; i++)
     {
-        Args c_args;
-        c_args.jobs = &jobs;
-        c_args.id = i + 1;
+        Args *c_args = malloc(sizeof(Args));
+        c_args->jobs = &jobs;
+        c_args->id = i + 1;
 
-        if (pthread_create(&compress[i], NULL, &compress_thread, &c_args) != 0)
+        if (pthread_create(&compress[i], NULL, &compress_thread, c_args) != 0)
         {
             printf("Fehler beim Erstellen des Compr\n");
             return EXIT_FAILURE;
@@ -196,8 +207,12 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < THREADS; i++)
     {
         pthread_join(compress[i], NULL);
-        printf("Compression %d wurde erfolgreich beendet.\n", i+1);
+        printf("Compression %d wurde erfolgreich beendet.\n", i + 1);
     }
+
+    //Laufzeit messen und differenz ausgeben
+    time(&tend);
+    printf("Laufzeit: %f\n", difftime(tend, tstart));
 
     return EXIT_SUCCESS;
 }
