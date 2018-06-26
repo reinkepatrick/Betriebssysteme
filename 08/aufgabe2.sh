@@ -1,6 +1,6 @@
 TIME=$(date +'%H')
 USER=$(whoami)
-if (( TIME > 0 ))& (( TIME < 12 ));
+if (( TIME > 0 )) & (( TIME < 12 ));
 then
     echo "Guten Morgen $USER"
 elif (( TIME < 17 ));
