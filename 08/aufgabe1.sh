@@ -1,3 +1,4 @@
+echo $0
 DIV=$1
 shift
 PROD=1
